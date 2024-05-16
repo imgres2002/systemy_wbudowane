@@ -36,6 +36,8 @@
 #define LCD_SHIFT_R     0x1D    // Przesunięcie ekranu w prawo
 #define LCD_SHIFT_L     0x1B    // Przesunięcie ekranu w lewo
 
+int max_time = 600; // maksymalny czas w sekundach
+
 void __delay_us(unsigned long us){
     __delay32(us*FCY/1000000);
 }
@@ -97,30 +99,43 @@ void LCD_init(){
     __delay_ms(2);
 }
 
-//void check_button(int *opcja, int *start){
-//    prev6 = PORTDbits.RD6;
-//    prev7 = PORTDbits.RD7;
-//    __delay32(150000);
-//    current6 = PORTDbits.RD6;
-//    current7 = PORTDbits.RD7;
-//    __delay32(150000);
-//
-//    if (current6 - prev6 == 1){
-//        if (*opcja == 0) {
-//            *opcja = 1;
-//        } else {
-//            *opcja = 0;
-//        }
-//    }
-//
-//    if (current7 - prev7 == 1){
-//        if (*start == 0) {
-//            *start = 1;
-//        } else {
-//            *start = 0;
-//        }
-//    }
-//}
+int check_button(int start){
+    prev6 = PORTDbits.RD6;
+    prev7 = PORTDbits.RD7;
+    __delay32(150000);
+    button1 = PORTDbits.RD6;
+    button2 = PORTDbits.RD7;
+    __delay32(150000);
+
+    if (button1 - prev6 == 1){
+        if (*opcja == 0) {
+            *opcja = 1;
+        } else {
+            *opcja = 0;
+        }
+    }
+
+    if (button2 - prev7 == 1){
+        if (*start == 0) {
+            *start = 1;
+        } else {
+            *start = 0;
+        }
+    }
+    return start;
+}
+
+int set_time(int time){
+    button1 = PORTDbits.RD6;
+    button2 = PORTDbits.RD7;
+    if (button1 == 1) {
+        time += 10;
+    }
+    if (button1 == 1) {
+        time -= 10;
+    }
+    return time;
+}
 
 int main(void) {
     TRISB = 0x7FFF;
@@ -129,72 +144,87 @@ int main(void) {
 //    TRISA = 0x0000;     // port set to output
 //    TRISD = 0xFFFF;     // port set to input
 
-    char current6 = 0, prev6 = 0, current7 = 0, prev7 = 0;
+    char button1 = 0, button2 = 0, button3 = 0;
+    int ustaw_czas = 0; // 0: nie ustawiaj, 1: ustawianie czasu dla gracza 1, 2: ustawianie czasu dla gracza 2
+    int start = 0; // 0: stop, 1: start
 
     LCD_init();
     LCD_setCursor(2,0);
 
-    unsigned int player1_time = 300; // Czas gracza 1 w sekundach (5 minut)
-    unsigned int player2_time = 300; // Czas gracza 2 w sekundach (5 minut)
+    unsigned int player1_time = 30; // Czas gracza 1 w sekundach
+    unsigned int player2_time = 30; // Czas gracza 2 w sekundach
 
     char tekst[100];
-    LCD_setCursor(1, 0);
-    sprintf(tekst, "Gracz 1: %02d:%02d", player1_time / 60, player1_time % 60);
-    LCD_print(tekst);
 
-    LCD_setCursor(2, 0);
-    sprintf(tekst, "Gracz 2: %02d:%02d", player2_time / 60, player2_time % 60);
-    LCD_print(tekst);
 
-    while(player1_time > 0 && player2_time > 0) {
-        unsigned int current_player_time;
+    while(1){
+        LCD_setCursor(1, 0);
+        sprintf(tekst, "Gracz 1: %02d:%02d", player1_time / 60, player1_time % 60);
+        LCD_print(tekst);
 
-        while (player1_time > 0 || current6 - prev6 == 1) {
-            __delay_ms(900);
-            player1_time--;
-
-            LCD_setCursor(1, 0);
-            sprintf(tekst, "Gracz 1: %02d:%02d", player1_time / 60, player1_time % 60);
-            LCD_print(tekst);
-
-            prev6 = PORTDbits.RD6;
-            current6 = PORTDbits.RD6;
-            __delay_ms(100);
+        LCD_setCursor(2, 0);
+        sprintf(tekst, "Gracz 2: %02d:%02d", player2_time / 60, player2_time % 60);
+        LCD_print(tekst);
+        if (button3 == 1) {
+            ustaw_czas++;
+            if (ustaw_czas > 2){
+                ustaw_czas = 0;
+            }
         }
-        if (current_player_time == 0) {
-            // Gracz 1 przegrał przez czas
-            LCD_sendCommand(LCD_CLEAR);
-            LCD_setCursor(2, 0);
-            LCD_print("Gracz 1 przegral");
-            break;
+        if (ustaw_czas == 1){
+            player1_time = set_time(player1_time);
         }
-
-        current_player_time = player2_time;
-        while (player2_time > 0 || current7 - prev7 == 1) {
-            __delay_ms(900);
-            player2_time--;
-
-            LCD_setCursor(2, 0);
-            sprintf(tekst, "Gracz 2: %02d:%02d", player2_time / 60, player2_time % 60);
-            LCD_print(tekst);
-
-            prev7 = PORTDbits.RD7;
-            current7 = PORTDbits.RD7;
-            __delay_ms(100);
+        if (ustaw_czas == 2){
+            player2_time = set_time(player2_time);
         }
-        if (player2_time == 0) {
-            // Gracz 2 przegrał przez czas
-            LCD_sendCommand(LCD_CLEAR);
-            LCD_setCursor(2, 0);
-            LCD_print("Gracz 2 przegral");
-            break;
+        if (button1 == 1 || button2 == 1){
+            start = 1;
         }
-    }
-    
-    while (current7 - prev7 == 1){
-        prev8 = PORTDbits.RD8;
-        current8 = PORTDbits.RD8;
-        __delay_ms(100);
+        while(player1_time > 0 && player2_time > 0 &&  start == 1) {
+
+            while (player1_time > 0 && button1 == 0) {
+                __delay_ms(900);
+                player1_time--;
+
+                LCD_setCursor(1, 0);
+                sprintf(tekst, "Gracz 1: %02d:%02d", player1_time / 60, player1_time % 60);
+                LCD_print(tekst);
+
+                __delay_ms(100);
+                button1 = PORTDbits.RD6;
+
+            }
+
+            if (player1_time == 0) {
+                // Gracz 1 przegrał przez czas
+                LCD_sendCommand(LCD_CLEAR);
+                LCD_setCursor(2, 0);
+                LCD_print("Gracz 1 przegral");
+                break;
+            }
+
+            while (player2_time > 0 && button2 == 0) {
+                __delay_ms(900);
+                player2_time--;
+
+                LCD_setCursor(2, 0);
+                sprintf(tekst, "Gracz 2: %02d:%02d", player2_time / 60, player2_time % 60);
+                LCD_print(tekst);
+
+                prev7 = PORTDbits.RD7;
+                button2 = PORTDbits.RD7;
+                __delay_ms(100);
+            }
+
+            if (player2_time == 0) {
+                // Gracz 2 przegrał przez czas
+                LCD_sendCommand(LCD_CLEAR);
+                LCD_setCursor(2, 0);
+                LCD_print("Gracz 2 przegral");
+                break;
+            }
+
+        }
     }
 
     return 0;

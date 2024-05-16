@@ -53,17 +53,17 @@ int IntToGray(unsigned char input){
 }
 
 unsigned int generate_random() {
-    
+
 }
 
 int main(void) {
     // Port access
     TRISA = 0x0000;     // port set to output
     TRISD = 0xFFFF;     // port set to input
-    
+
     unsigned portValue = 0x0000;
 
-    
+
 
     while(1)
     {
@@ -74,7 +74,7 @@ int main(void) {
             LATA = portValue;
             __delay32(1500000);
             zad = check_button(zad);
-   
+
         }
         portValue = 0x0000;
 
