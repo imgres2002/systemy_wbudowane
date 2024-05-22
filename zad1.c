@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#define BIT_VALUE(val,no_bit) (val>>no_bit)&1
 
 
 unsigned int seed = 1110011;
@@ -52,8 +53,8 @@ int IntToGray(unsigned char input){
     return (input >> 1) ^ input;
 }
 
-unsigned int generate_random() {
-
+unsigned int generate_random(int val) {
+    return BIT_VALUE(val,0)^BIT_VALUE(val,1)^BIT_VALUE(val,4)^BIT_VALUE(val,5);
 }
 
 int main(void) {
@@ -194,10 +195,14 @@ int main(void) {
         portValue = 0x0000;
 
         while (zad==9){
-            LATA = 0x0000;
-            __delay32(1500000);
-            LATA = 0xffff;
-            zad = check_button(zad);
+            int val = 1;
+            while (zad==9){
+                int x = generate_random(val);
+                val = (val >> 1) | (x << 5);
+                __delay32(1500000);
+                LATA = val;
+                zad = check_button(zad);
+            }
         }
         portValue = 0x0000;
     }
