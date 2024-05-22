@@ -81,7 +81,7 @@ void LCD_print(unsigned char* string){
     }
 }
 
-// Funkcja ustawiająca kursor w wybranym miejscu
+// Funkcja ustawiaj?ca kursor w wybranym miejscu
 
 void LCD_setCursor(unsigned char row, unsigned char col){
     unsigned char address;
@@ -208,7 +208,7 @@ unsigned char coin8[8] = {
         0b10000,
         0b10000
 };
-
+char current6 = 0, current7 = 0; //variables for buttons
 int check_button(int tryb){
     current6 = PORTDbits.RD6;
     current7 = PORTDbits.RD7;
@@ -227,17 +227,19 @@ int check_button(int tryb){
             tryb=9;
         }
     }
-    return zad;
+    return tryb;
 }
 
 int main(void) {
-    TRISB = 0x7FFF;     // Ustawienie rejestrow kierunku
+//    TRISA = 0x0000;     // port set to output
+//    TRISD = 0xFFFF;     // port set to input
+    TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
 
-    int tryb = 0;
+    int tryb = 4;
 
-    char ad_text[] = "pomidor 2zl";
+    char ad_text[] = "pomidor2zl";
 
     LCD_init();                     // Inicjalizacja wyswietlacza
     LCD_saveCustChar(0, coin1);
@@ -248,11 +250,9 @@ int main(void) {
     LCD_saveCustChar(5, coin6);
     LCD_saveCustChar(6, coin7);
     LCD_saveCustChar(7, coin8);
-    LCD_setCursor(1,0);             // Ustawienie kursora na poczatku drugiej linii
+    LCD_setCursor(1,1);             // Ustawienie kursora na poczatku drugiej linii
     LCD_print(ad_text);      // Wyswietlenie napisu
-    LCD_sendData(0);                // Wyswietlenie znaku ze slotu 0 w pamieci CGRAM
     __delay_ms(500);
-    LCD_sendCommand(LCD_SHIFT_R);    // Przesuniecie calej zawartosci o jedno miejsce w prawo
 
     while (1){
 //        miganie
@@ -276,7 +276,7 @@ int main(void) {
             tryb = check_button(tryb);
         }
         // przewijanie w prawo
-        while(tryb == 0) {
+        while(tryb == 2) {
             LCD_sendCommand(LCD_CLEAR);
             int length = strlen(ad_text);
             LCD_setCursor(1,-length);
@@ -290,7 +290,7 @@ int main(void) {
             }
         }
         // przewijanie w lewo
-        while(tryb == 0) {
+        while(tryb == 3) {
             LCD_sendCommand(LCD_CLEAR);
             int length = strlen(ad_text);
             LCD_setCursor(1,length+12);
@@ -304,11 +304,15 @@ int main(void) {
             }
         }
 //        ze znakiem specjalnym
-        while(tryb == 0) {
+        while(tryb == 4) {
             LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(500);
             int length = strlen(ad_text);
+            __delay_ms(500);
             LCD_setCursor(1,1);
+            __delay_ms(500);
             LCD_print(ad_text);
+            __delay_ms(500);
             int symbol_number = 0;
             while (symbol_number<=6){
                 LCD_setCursor(1,length+1);
@@ -321,9 +325,9 @@ int main(void) {
             }
             symbol_number = 7;
             while (symbol_number>=0){
-                LCD_setCursor(1,length+1);
-                LCD_sendData(symbol_number);
                 LCD_setCursor(1,length+2);
+                LCD_sendData(symbol_number);
+                LCD_setCursor(1,length+1);
                 LCD_sendData(symbol_number-1);
                 symbol_number-=2;
                 __delay_ms(500);
