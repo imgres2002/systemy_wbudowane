@@ -17,7 +17,7 @@
 #include <libpic30.h>
 #include <stdio.h>
 
-#define FCY         4000000UL   // Częstotliwość robocza oscylatora jako połowa
+#define FCY         4000000UL   // Cz?stotliwo?? robocza oscylatora jako po?owa
 
 #define LCD_E       LATDbits.LATD4
 #define LCD_RW      LATDbits.LATD5
@@ -25,16 +25,16 @@
 #define LCD_DATA    LATE
 
 #define LCD_CLEAR   0x01    // Czyszczenie ekranu
-#define LCD_HOME    0x02    // Powrót kursora do początku
-#define LCD_ON      0x0C    // Włączenie wyświetlacza
-#define LCD_OFF     0x08    // Wyłączenie wyświetlacza
-#define LCD_CONFIG  0x38    // Konfiguracja wyświetlacza
+#define LCD_HOME    0x02    // Powrót kursora do pocz?tku
+#define LCD_ON      0x0C    // W??czenie wy?wietlacza
+#define LCD_OFF     0x08    // Wy??czenie wy?wietlacza
+#define LCD_CONFIG  0x38    // Konfiguracja wy?wietlacza
 #define LCD_CURSOR  0x80    // Ustawienie kursora
-#define LINE1       0x00    // Adres początku pierwszej linii
-#define LINE2       0x40    // Adres początku drugiej linii
+#define LINE1       0x00    // Adres pocz?tku pierwszej linii
+#define LINE2       0x40    // Adres pocz?tku drugiej linii
 #define LCD_CUST_CHAR   0x40    // Zapisanie niestandardowego znaku
-#define LCD_SHIFT_R     0x1D    // Przesunięcie ekranu w prawo
-#define LCD_SHIFT_L     0x1B    // Przesunięcie ekranu w lewo
+#define LCD_SHIFT_R     0x1D    // Przesuni?cie ekranu w prawo
+#define LCD_SHIFT_L     0x1B    // Przesuni?cie ekranu w lewo
 
 int max_time = 600; // maksymalny czas w sekundach
 
@@ -98,24 +98,13 @@ void LCD_init(){
     LCD_sendCommand(LCD_CLEAR);
     __delay_ms(2);
 }
-
+char button1 = 0, button2 = 0, button3 = 0;
 int check_button(int start){
-    prev6 = PORTDbits.RD6;
-    prev7 = PORTDbits.RD7;
-    __delay32(150000);
     button1 = PORTDbits.RD6;
     button2 = PORTDbits.RD7;
     __delay32(150000);
 
-    if (button1 - prev6 == 1){
-        if (*opcja == 0) {
-            *opcja = 1;
-        } else {
-            *opcja = 0;
-        }
-    }
-
-    if (button2 - prev7 == 1){
+    if (button2 == 1){
         if (*start == 0) {
             *start = 1;
         } else {
@@ -144,7 +133,7 @@ int main(void) {
 //    TRISA = 0x0000;     // port set to output
 //    TRISD = 0xFFFF;     // port set to input
 
-    char button1 = 0, button2 = 0, button3 = 0;
+    
     int ustaw_czas = 0; // 0: nie ustawiaj, 1: ustawianie czasu dla gracza 1, 2: ustawianie czasu dla gracza 2
     int start = 0; // 0: stop, 1: start
 
@@ -196,7 +185,7 @@ int main(void) {
             }
 
             if (player1_time == 0) {
-                // Gracz 1 przegrał przez czas
+                // Gracz 1 przegra? przez czas
                 LCD_sendCommand(LCD_CLEAR);
                 LCD_setCursor(2, 0);
                 LCD_print("Gracz 1 przegral");
@@ -211,13 +200,13 @@ int main(void) {
                 sprintf(tekst, "Gracz 2: %02d:%02d", player2_time / 60, player2_time % 60);
                 LCD_print(tekst);
 
-                prev7 = PORTDbits.RD7;
+                button1 = PORTDbits.RD7;
                 button2 = PORTDbits.RD7;
                 __delay_ms(100);
             }
 
             if (player2_time == 0) {
-                // Gracz 2 przegrał przez czas
+                // Gracz 2 przegra? przez czas
                 LCD_sendCommand(LCD_CLEAR);
                 LCD_setCursor(2, 0);
                 LCD_print("Gracz 2 przegral");
