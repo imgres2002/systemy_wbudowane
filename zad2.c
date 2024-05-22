@@ -14,12 +14,26 @@
 #pragma config GCP = OFF // Code protection is disabled
 #pragma config JTAGEN = OFF // JTAG port is disabled
 
-#define FCY         4000000UL   // Częstotliwość robocza oscylatora jako połowa
+#define FCY         4000000UL   // Cz?stotliwo?? robocza oscylatora jako po?owa
 
 #include "xc.h"
 
 void __delay_ms(unsigned long ms){
     __delay32(ms*FCY/1000);
+}
+char current6 = 0;
+int check_button(int wlacz){
+    current6 = PORTDbits.RD6;
+
+    if (current6 == 1){
+        if(wlacz == 1){
+            wlacz = 0;
+        } else {
+            wlacz = 1;
+        }
+    }
+
+    return wlacz;
 }
 
 unsigned portValue;
@@ -35,25 +49,32 @@ int main(void) {
     AD1CSSL = 0x0020;   //AD1CSSL = 0b0000000000100000;
 
     int potentiometer = 0;
+    int wlacz = 1;
+    
 
     while(1) {
 //        while(!AD1CON1bits.DONE);
         __delay32(1500000);
         potentiometer = ADC1BUF0;
+
         int time = 0;
-        while(potentiometer > 512){
+        while(potentiometer > 512 && wlacz==1){
             while(time <= 5 && potentiometer > 512){
                 potentiometer = ADC1BUF0;
                 LATA = 0xffff;
-                __delay_ms(500);
+                __delay_ms(1000);
                 LATA = 0x0000;
-                __delay_ms(500);
+                __delay_ms(1000);
                 time++;
             }
             potentiometer = ADC1BUF0;
+            __delay32(1500000);
             LATA = 0xffff;
             __delay32(1500000);
+            wlacz = check_button(wlacz);
+            __delay32(1500000);
         }
+        LATA = 0x0000;
     }
     return 0;
 }
