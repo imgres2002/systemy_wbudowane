@@ -208,14 +208,17 @@ unsigned char coin8[8] = {
         0b10000,
         0b10000
 };
-char current6 = 0, current7 = 0; //variables for buttons
-int ilosc_trybow = 4;
+char button1 = 0, button2 = 0; //variables for buttons
+int ilosc_trybow = 5;
 int check_button(int tryb){
-    current6 = PORTDbits.RD6;
-    current7 = PORTDbits.RD7;
+    TRISA = 0x0000;
+    TRISD = 0xFFFF;
+    
+    button1 = PORTDbits.RD6;
+    button2 = PORTDbits.RD7;
     __delay32(1500000);
 
-    if (current6 == 1){
+    if (button1 == 1){
         tryb++;
         if(tryb > ilosc_trybow){
             tryb=1;
@@ -228,12 +231,13 @@ int check_button(int tryb){
             tryb=ilosc_trybow;
         }
     }
+    TRISB = 0x7FFF;
+    TRISD = 0x0000;
+    TRISE = 0x0000;
     return tryb;
 }
 
 int main(void) {
-//    TRISA = 0x0000;     // port set to output
-//    TRISD = 0xFFFF;     // port set to input
     TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
@@ -241,6 +245,7 @@ int main(void) {
     int tryb = 4;
 
     char ad_text[] = "pomidor2zl";
+    int length = strlen(ad_text);
 
     LCD_init();                     // Inicjalizacja wyswietlacza
     LCD_saveCustChar(0, coin1);
@@ -251,70 +256,78 @@ int main(void) {
     LCD_saveCustChar(5, coin6);
     LCD_saveCustChar(6, coin7);
     LCD_saveCustChar(7, coin8);
-    LCD_setCursor(1,1);             // Ustawienie kursora na poczatku drugiej linii
+    LCD_setCursor(1,0);             // Ustawienie kursora na poczatku drugiej linii
     LCD_print(ad_text);      // Wyswietlenie napisu
     __delay_ms(500);
 
     while (1){
 //        miganie
         while(tryb == 0) {
-            LCD_setCursor(1,0);             // Ustawienie kursora na poczatku drugiej linii
-            LCD_print(ad_text);
-            __delay_ms(1000);
             LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(1000);
+            LCD_setCursor(1,0);
+            __delay_ms(100);
+            LCD_print(ad_text);
             __delay_ms(1000);
             tryb = check_button(tryb);
         }
-        // przewijanie w pionie
+//        przewijanie w pionie
         while(tryb == 1) {
-            LCD_setCursor(1,0);             // Ustawienie kursora na poczatku drugiej linii
+            LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(100);
+            LCD_setCursor(1,0);
+            __delay_ms(100);
             LCD_print(ad_text);
             __delay_ms(500);
             LCD_sendCommand(LCD_CLEAR);
-            LCD_setCursor(2,0);             // Ustawienie kursora na poczatku drugiej linii
+            __delay_ms(100);
+            LCD_setCursor(2,0);
+            __delay_ms(100);
             LCD_print(ad_text);
             __delay_ms(500);
             tryb = check_button(tryb);
         }
-        // przewijanie w prawo
+//        przewijanie w prawo
         while(tryb == 2) {
-            LCD_sendCommand(LCD_CLEAR);
-            int length = strlen(ad_text);
-            LCD_setCursor(1,-length);
             int  column_first_latter = -length;
-            while (column_first_latter < length + 12){
-                LCD_print(ad_text);
-                __delay_ms(500);
-                tryb = check_button(tryb);
+            LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(100);
+            LCD_setCursor(1,column_first_latter);
+            __delay_ms(100);
+            LCD_print(ad_text);
+            __delay_ms(100);
+            while (tryb == 2 && column_first_latter < length + 12){
                 LCD_sendCommand(LCD_SHIFT_R);
+                __delay_ms(100);
                 column_first_latter++;
+                tryb = check_button(tryb);
             }
         }
-        // przewijanie w lewo
+//        przewijanie w lewo
         while(tryb == 3) {
-            LCD_sendCommand(LCD_CLEAR);
-            int length = strlen(ad_text);
-            LCD_setCursor(1,0);
             int  column_first_latter = length + 12;
-            while (column_first_latter > -length){
-                LCD_print(ad_text);
-                __delay_ms(500);
-                tryb = check_button(tryb);
+            LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(100);
+            LCD_setCursor(1,column_first_latter);
+            __delay_ms(100);
+            LCD_print(ad_text);
+            __delay_ms(100);
+            while (tryb == 3 && column_first_latter > -length){
                 LCD_sendCommand(LCD_SHIFT_L);
+                __delay_ms(100);
                 column_first_latter--;
+                tryb = check_button(tryb);
             }
         }
 //        ze znakiem specjalnym
         while(tryb == 4) {
-            LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(500);
-            int length = strlen(ad_text);
-            __delay_ms(500);
-            LCD_setCursor(1,1);
-            __delay_ms(500);
-            LCD_print(ad_text);
-            __delay_ms(500);
             int symbol_number = 0;
+            LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(100);
+            LCD_setCursor(1,1);
+            __delay_ms(100);
+            LCD_print(ad_text);
+            __delay_ms(100);
             while (symbol_number<=6){
                 LCD_setCursor(1,length+1);
                 LCD_sendData(symbol_number);
@@ -338,24 +351,16 @@ int main(void) {
 //        odbijanie od krawędzi
         while(tryb == 5) {
             LCD_sendCommand(LCD_CLEAR);
-            int length = strlen(ad_text);
             LCD_setCursor(1,0);
+            LCD_print(ad_text);
             int  column_first_latter = 0;
             while (column_first_latter <= 12 - length){
-                LCD_sendCommand(LCD_CLEAR);
-                __delay_ms(500);
-                LCD_print(ad_text);
-                __delay_ms(500);
                 LCD_sendCommand(LCD_SHIFT_R);
                 __delay_ms(500);
                 tryb = check_button(tryb);
                 column_first_latter++;
             }
             while (column_first_latter > 0){
-                LCD_sendCommand(LCD_CLEAR);
-                __delay_ms(500);
-                LCD_print(ad_text);
-                __delay_ms(500);
                 LCD_sendCommand(LCD_SHIFT_L);
                 __delay_ms(500);
                 tryb = check_button(tryb);
