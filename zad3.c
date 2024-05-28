@@ -209,6 +209,7 @@ unsigned char coin8[8] = {
         0b10000
 };
 char current6 = 0, current7 = 0; //variables for buttons
+int ilosc_trybow = 4;
 int check_button(int tryb){
     current6 = PORTDbits.RD6;
     current7 = PORTDbits.RD7;
@@ -216,15 +217,15 @@ int check_button(int tryb){
 
     if (current6 == 1){
         tryb++;
-        if(tryb > 9){
+        if(tryb > ilosc_trybow){
             tryb=1;
         }
     }
 
     if (tryb == 1){
         tryb--;
-        if(tryb < 0){
-            tryb=9;
+        if(tryb < 1){
+            tryb=ilosc_trybow;
         }
     }
     return tryb;
@@ -259,9 +260,9 @@ int main(void) {
         while(tryb == 0) {
             LCD_setCursor(1,0);             // Ustawienie kursora na poczatku drugiej linii
             LCD_print(ad_text);
-            __delay_ms(500);
+            __delay_ms(1000);
             LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(500);
+            __delay_ms(1000);
             tryb = check_button(tryb);
         }
         // przewijanie w pionie
@@ -293,8 +294,8 @@ int main(void) {
         while(tryb == 3) {
             LCD_sendCommand(LCD_CLEAR);
             int length = strlen(ad_text);
-            LCD_setCursor(1,length+12);
-            int  column_first_latter = -length;
+            LCD_setCursor(1,0);
+            int  column_first_latter = length + 12;
             while (column_first_latter > -length){
                 LCD_print(ad_text);
                 __delay_ms(500);
