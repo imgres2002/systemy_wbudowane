@@ -14,7 +14,7 @@
 #pragma config GCP = OFF // Code protection is disabled
 #pragma config JTAGEN = OFF // JTAG port is disabled
 
-#define FCY         4000000UL   // Cz?stotliwo?? robocza oscylatora jako po?owa
+#define FCY         8000000UL   // Cz?stotliwo?? robocza oscylatora jako po?owa
 
 #include "xc.h"
 

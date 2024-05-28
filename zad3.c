@@ -19,7 +19,7 @@
 
 // Defninicja makr tak by kod byl czytelny, przejrzysty, deskryptywny i przyjazny
 // uzytkownikowi
-#define FCY         4000000UL   // czestotliwosc robocza oscylatora jako polowa
+#define FCY         8000000UL   // czestotliwosc robocza oscylatora jako polowa
 //czestotliwosci (FNOSC = FRC -> FCY = 4000000)
 // Zdefiniowanie poszczegolnych pinow jako odpowiednie makra
 #define LCD_E       LATDbits.LATD4
@@ -333,6 +333,33 @@ int main(void) {
                 symbol_number-=2;
                 __delay_ms(500);
                 tryb = check_button(tryb);
+            }
+        }
+//        odbijanie od krawędzi
+        while(tryb == 5) {
+            LCD_sendCommand(LCD_CLEAR);
+            int length = strlen(ad_text);
+            LCD_setCursor(1,0);
+            int  column_first_latter = 0;
+            while (column_first_latter <= 12 - length){
+                LCD_sendCommand(LCD_CLEAR);
+                __delay_ms(500);
+                LCD_print(ad_text);
+                __delay_ms(500);
+                LCD_sendCommand(LCD_SHIFT_R);
+                __delay_ms(500);
+                tryb = check_button(tryb);
+                column_first_latter++;
+            }
+            while (column_first_latter > 0){
+                LCD_sendCommand(LCD_CLEAR);
+                __delay_ms(500);
+                LCD_print(ad_text);
+                __delay_ms(500);
+                LCD_sendCommand(LCD_SHIFT_L);
+                __delay_ms(500);
+                tryb = check_button(tryb);
+                column_first_latter--;
             }
         }
     }
