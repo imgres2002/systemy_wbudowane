@@ -50,10 +50,9 @@ int main(void) {
 
     int potentiometer = 0;
     int wlacz = 1;
-    
+
 
     while(1) {
-//        while(!AD1CON1bits.DONE);
         __delay32(1500000);
         potentiometer = ADC1BUF0;
 
@@ -61,7 +60,7 @@ int main(void) {
         while(potentiometer > 512 && wlacz==1){
             while(time <= 5 && potentiometer > 512){
                 potentiometer = ADC1BUF0;
-                LATA = 0xffff;
+                LATA = 0x0001;
                 __delay_ms(1000);
                 LATA = 0x0000;
                 __delay_ms(1000);
