@@ -209,28 +209,32 @@ unsigned char coin8[8] = {
         0b10000
 };
 char button1 = 0, button2 = 0; //variables for buttons
-int ilosc_trybow = 5;
+int ilosc_trybow = 3;
 int check_button(int tryb){
     TRISA = 0x0000;
     TRISD = 0xFFFF;
     
+    __delay_ms(100);
+    
     button1 = PORTDbits.RD6;
+    __delay_ms(100);
     button2 = PORTDbits.RD7;
-    __delay32(1500000);
+    __delay_ms(100);
 
-    if (button1 == 1){
-        tryb++;
-        if(tryb > ilosc_trybow){
-            tryb=1;
-        }
-    }
-
-    if (tryb == 1){
+    if (button1 == 0){
         tryb--;
-        if(tryb < 1){
+        if(tryb < 0){
             tryb=ilosc_trybow;
         }
     }
+    __delay_ms(100);
+    if (button2 == 0){
+        tryb++;
+        if(tryb > ilosc_trybow){
+            tryb=0;
+        }
+    }
+    __delay_ms(100);
     TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
@@ -242,23 +246,34 @@ int main(void) {
     TRISD = 0x0000;
     TRISE = 0x0000;
 
-    int tryb = 4;
+    int tryb = 0;
 
-    char ad_text[] = "pomidor2zl";
+    char ad_text[] = "pomidor 2zl";
     int length = strlen(ad_text);
+//    int length = 10;
 
     LCD_init();                     // Inicjalizacja wyswietlacza
+    __delay_ms(100);
     LCD_saveCustChar(0, coin1);
+    __delay_ms(100);
     LCD_saveCustChar(1, coin2);
+    __delay_ms(100);
     LCD_saveCustChar(2, coin3);
+    __delay_ms(100);
     LCD_saveCustChar(3, coin4);
+    __delay_ms(100);
     LCD_saveCustChar(4, coin5);
+    __delay_ms(100);
     LCD_saveCustChar(5, coin6);
+    __delay_ms(100);
     LCD_saveCustChar(6, coin7);
+    __delay_ms(100);
     LCD_saveCustChar(7, coin8);
+    __delay_ms(100);
     LCD_setCursor(1,0);             // Ustawienie kursora na poczatku drugiej linii
+    __delay_ms(100);
     LCD_print(ad_text);      // Wyswietlenie napisu
-    __delay_ms(500);
+    __delay_ms(100);
 
     while (1){
 //        miganie
@@ -270,6 +285,7 @@ int main(void) {
             LCD_print(ad_text);
             __delay_ms(1000);
             tryb = check_button(tryb);
+            __delay_ms(100);
         }
 //        przewijanie w pionie
         while(tryb == 1) {
@@ -284,43 +300,48 @@ int main(void) {
             LCD_setCursor(2,0);
             __delay_ms(100);
             LCD_print(ad_text);
-            __delay_ms(500);
+            __delay_ms(100);
             tryb = check_button(tryb);
         }
-//        przewijanie w prawo
-        while(tryb == 2) {
-            int  column_first_latter = -length;
-            LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
-            LCD_setCursor(1,column_first_latter);
-            __delay_ms(100);
-            LCD_print(ad_text);
-            __delay_ms(100);
-            while (tryb == 2 && column_first_latter < length + 12){
-                LCD_sendCommand(LCD_SHIFT_R);
-                __delay_ms(100);
-                column_first_latter++;
-                tryb = check_button(tryb);
-            }
-        }
-//        przewijanie w lewo
-        while(tryb == 3) {
-            int  column_first_latter = length + 12;
-            LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
-            LCD_setCursor(1,column_first_latter);
-            __delay_ms(100);
-            LCD_print(ad_text);
-            __delay_ms(100);
-            while (tryb == 3 && column_first_latter > -length){
-                LCD_sendCommand(LCD_SHIFT_L);
-                __delay_ms(100);
-                column_first_latter--;
-                tryb = check_button(tryb);
-            }
-        }
+////        przewijanie w prawo
+//        while(tryb == 2) {
+//            int  column_first_latter = -length;
+//            __delay_ms(100);
+//            LCD_sendCommand(LCD_CLEAR);
+//            __delay_ms(100);
+//            LCD_setCursor(1,column_first_latter);
+//            __delay_ms(100);
+//            LCD_print(ad_text);
+//            __delay_ms(100);
+//            while (tryb == 2 && column_first_latter < length + 12){
+//                LCD_sendCommand(LCD_SHIFT_R);
+//                __delay_ms(100);
+//                column_first_latter++;
+//                __delay_ms(100);
+//                tryb = check_button(tryb);
+//                __delay_ms(100);
+//            }
+//        }
+////        przewijanie w lewo
+//        while(tryb == 3) {
+//            int  column_first_latter = length + 12;
+//            __delay_ms(100);
+//            LCD_sendCommand(LCD_CLEAR);
+//            __delay_ms(100);
+//            LCD_setCursor(1,column_first_latter);
+//            __delay_ms(100);
+//            LCD_print(ad_text);
+//            __delay_ms(100);
+//            while (tryb == 3 && column_first_latter > -length){
+//                LCD_sendCommand(LCD_SHIFT_L);
+//                __delay_ms(100);
+//                column_first_latter--;
+//                tryb = check_button(tryb);
+//                __delay_ms(100);
+//            }
+//        }
 //        ze znakiem specjalnym
-        while(tryb == 4) {
+        while(tryb == 2) {
             int symbol_number = 0;
             LCD_sendCommand(LCD_CLEAR);
             __delay_ms(100);
@@ -330,39 +351,50 @@ int main(void) {
             __delay_ms(100);
             while (symbol_number<=6){
                 LCD_setCursor(1,length+1);
+                __delay_ms(100);
                 LCD_sendData(symbol_number);
+                __delay_ms(100);
                 LCD_setCursor(1,length+2);
+                __delay_ms(100);
                 LCD_sendData(symbol_number+1);
+                __delay_ms(100);
                 symbol_number+=2;
-                __delay_ms(500);
                 tryb = check_button(tryb);
+                __delay_ms(100);
             }
             symbol_number = 7;
             while (symbol_number>=0){
                 LCD_setCursor(1,length+2);
+                __delay_ms(100);
                 LCD_sendData(symbol_number);
+                __delay_ms(100);
                 LCD_setCursor(1,length+1);
+                __delay_ms(100);
                 LCD_sendData(symbol_number-1);
+                __delay_ms(100);
                 symbol_number-=2;
-                __delay_ms(500);
                 tryb = check_button(tryb);
+                __delay_ms(100);
             }
         }
 //        odbijanie od krawędzi
-        while(tryb == 5) {
+        while(tryb == 3) {
             LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(100);
             LCD_setCursor(1,0);
+            __delay_ms(100);
             LCD_print(ad_text);
+            __delay_ms(100);
             int  column_first_latter = 0;
-            while (column_first_latter <= 12 - length){
+            while (column_first_latter < 16 - length && tryb == 3){
                 LCD_sendCommand(LCD_SHIFT_R);
-                __delay_ms(500);
+                __delay_ms(100);
                 tryb = check_button(tryb);
                 column_first_latter++;
             }
-            while (column_first_latter > 0){
+            while (column_first_latter > 0 && tryb == 3){
                 LCD_sendCommand(LCD_SHIFT_L);
-                __delay_ms(500);
+                __delay_ms(100);
                 tryb = check_button(tryb);
                 column_first_latter--;
             }
