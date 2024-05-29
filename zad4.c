@@ -17,7 +17,7 @@
 #include <libpic30.h>
 #include <stdio.h>
 
-#define FCY 8000000UL
+#define FCY 4000000UL
 #define LCD_E       LATDbits.LATD4
 #define LCD_RW      LATDbits.LATD5
 #define LCD_RS      LATBbits.LATB15
@@ -90,10 +90,10 @@ char button1 = 0, button2 = 0, potentiometer = 0;
 void check_button(int *opcja, int *start){
     TRISA = 0x0000;
     TRISD = 0xFFFF;
-    __delay_ms(100);
+    __delay_ms(10);
 
     button1 = PORTDbits.RD6;
-    __delay_ms(100);
+    __delay_ms(10);
     button2 = PORTDbits.RD7;
     __delay32(150000);
 
@@ -104,7 +104,7 @@ void check_button(int *opcja, int *start){
             *opcja = 0;
         }
     }
-    __delay_ms(100);
+    __delay_ms(10);
     if (button2 == 0){
         if (*start == 0) {
             *start = 1;
@@ -112,7 +112,7 @@ void check_button(int *opcja, int *start){
             *start = 0;
         }
     }
-    __delay_ms(100);
+    __delay_ms(10);
     TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
@@ -127,13 +127,13 @@ int check_potentiometer(int opcja){
     AD1CHS = 0;
     AD1CSSL = 0x0020;   //AD1CSSL = 0b0000000000100000;
     int val = 0;
-    __delay_ms(100);
+    __delay_ms(10);
     if(opcja == 0){
 //        float pom = ADC1BUF0/ 1024 * 300;
 //        val = (int)pom;
         val = ADC1BUF0;
     }
-    __delay_ms(100);
+    __delay_ms(10);
     if(opcja == 1){
         val = ADC1BUF0/2;
     }
@@ -164,41 +164,51 @@ int main(void) {
         check_button(&opcja, &start);
 
         if (opcja == 0) {
-            __delay_ms(100);
+            __delay_ms(10);
             waty = check_potentiometer(opcja);
-            __delay_ms(100);
+            __delay_ms(10);
 
             sprintf(tekst, "moc: %dw", waty);
             LCD_setCursor(2, 0);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_print(tekst);
-            __delay_ms(100);
+            __delay_ms(10);
         }
         if (opcja == 1) {
             czas = check_potentiometer(opcja);
-            __delay_ms(100);
+            __delay_ms(10);
 
             sprintf(tekst, "czas: %02d:%02ds", czas / 60, czas % 60);
             LCD_setCursor(1, 0);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_print(tekst);
-            __delay_ms(100);
+            __delay_ms(10);
         }
         if (start == 1) {
             LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
+            __delay_ms(10);
             while (start == 1 && czas > 0) {
                 LCD_setCursor(1, 0);
-                __delay_ms(100);
+                __delay_ms(10);
                 sprintf(tekst, "pozostolo: %02d:%02ds", czas / 60, czas % 60);
                 LCD_print(tekst);
-                __delay_ms(9800);
+                __delay_ms(980);
                 czas--;
-                __delay_ms(100);
+                __delay_ms(10);
                 check_button(&opcja, &start);
             }
+            LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(10);
+            LCD_setCursor(1, 0);
+            __delay_ms(10);
+            LCD_print("koniec");
+            __delay_ms(1000);
+            __delay_ms(1000);
+            __delay_ms(1000);
+            __delay_ms(1000);
+            
             break;
         }
     }
