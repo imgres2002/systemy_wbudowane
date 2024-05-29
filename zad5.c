@@ -108,7 +108,10 @@ int check_time_status(int *time_status){
 
     __delay32(150000);
 
-    time_status++;
+
+    if(button2 == 1){
+            *time_status++;;
+        }
     if(*time_status > 2) {
         *time_status = 0;
     }
@@ -164,7 +167,7 @@ int set_time(int time){
     if (button3 == 1) {
         time -= 10;
     }
-    TRISB = 0x7FFF;
+    TRISB = 0x7FFF; 
     TRISD = 0x0000;
     TRISE = 0x0000;
 
