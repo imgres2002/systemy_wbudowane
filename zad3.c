@@ -377,7 +377,7 @@ int main(void) {
                 __delay_ms(100);
             }
         }
-//        odbijanie od krawędzi
+//        odbijanie od kraw?dzi
         while(tryb == 3) {
             LCD_sendCommand(LCD_CLEAR);
             __delay_ms(100);
