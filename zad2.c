@@ -25,7 +25,7 @@ char current6 = 0;
 int check_button(int wlacz){
     current6 = PORTDbits.RD6;
 
-    if (current6 == 1){
+    if (current6 == 0){
         if(wlacz == 1){
             wlacz = 0;
         } else {
@@ -51,11 +51,11 @@ int main(void) {
     int potentiometer = 0;
     int wlacz = 1;
 
-
     while(1) {
         __delay32(1500000);
         potentiometer = ADC1BUF0;
-
+        wlacz = check_button(wlacz);
+        
         int time = 0;
         while(potentiometer > 512 && wlacz==1){
             while(time <= 5 && potentiometer > 512){
