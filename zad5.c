@@ -87,54 +87,39 @@ void LCD_init(){
     __delay_ms(2);
 }
 
-char button1 = 1, button2 = 1, button3 = 1;
-int check_time_status(int *time_status){
-    TRISA = 0b01000000;
-    TRISD = 0xFFFF;
-
-    button2 = PORTDbits.RD7;
-
-    __delay32(150000);
-
-
-    if(button2 == 0){
-        *time_status++;;
-    }
-    if(*time_status > 2) {
-        *time_status = 0;
-    }
-
-    TRISB = 0x7FFF;
-    TRISD = 0x0000;
-    TRISE = 0x0000;
-}
+char button1 = 0, button2 = 0, button3 = 0;
 
 void check_game_status(int *game_status, int *current_player){
-    TRISA = 0b01000000;
-    TRISD = 0xFFFF;
+    __delay_ms(10);
+    TRISAbits.TRISA7=1;
+    __delay_ms(10);
+    button3 = PORTAbits.RA7;
 
+    __delay_ms(10);
+    TRISA = 0x0000;
+    __delay_ms(10);
+    TRISD = 0xFFFF;
+    __delay_ms(10);
     button1 = PORTDbits.RD6;
     __delay_ms(10);
     button2 = PORTDbits.RD7;
     __delay_ms(10);
-    button3 = PORTAbits.RA7;
-    __delay_ms(10);
-    
 
     if(*current_player != 0 && *game_status == 0){
+        __delay_ms(10);
         if(button2 == 0){
+            __delay_ms(10);
             *game_status = 1;
         }
     }
     if (*current_player == 0 && *game_status == 0){
-        if(button1 == 0){
-            *current_player = 1;
-            __delay_ms(100);
-            *game_status = 1;
-        }
         if(button3 == 0){
             *current_player = 2;
-            __delay_ms(100);
+            *game_status = 1;
+        }
+        
+        if(button1 == 0){
+            *current_player = 1;
             *game_status = 1;
         }
     }
@@ -151,32 +136,70 @@ void check_game_status(int *game_status, int *current_player){
             *current_player = 1;
         }
     }
-    __delay_ms(10);;
+    __delay_ms(10);
+    TRISA = 0x0000;
     TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
 }
 
 int set_time(int time){
+    __delay_ms(10);
+    TRISAbits.TRISA7=1;
+    __delay_ms(10);
+    button3 = PORTAbits.RA7;
+
+    __delay_ms(10);
     TRISA = 0x0000;
+    __delay_ms(10);
     TRISD = 0xFFFF;
     __delay_ms(10);
     button1 = PORTDbits.RD6;
     __delay_ms(10);
-    button3 = PORTAbits.RA7;
+    button2 = PORTDbits.RD7;
     __delay_ms(10);
-    if (button1 == 0) {
+    
+    if (button3 == 0) {
         time += 10;
     }
-    if (button3 == 0) {
+    if (button1 == 0) {
         time -= 10;
     }
-    TRISB = 0x7FFF; 
+    __delay_ms(10);
+    TRISA = 0x0000;
+    TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
 
     return time;
 }
+
+void wait(int n, int game_status, int current_player){
+    for(int i = 0; i<n; i++){
+        __delay_ms(100);
+        check_game_status(game_status, current_player);
+    }
+}
+
+//int check_time_status(int *time_status){
+//    TRISA = 0x0000;
+//    TRISD = 0xFFFF;
+//
+//    button2 = PORTDbits.RD7;
+//
+//    __delay_ms(10);
+//
+//
+//    if(button2 == 0){
+//        *time_status = 1;
+//    }
+//    if(*time_status > 2) {
+//        *time_status = 0;
+//    }
+//    TRISB = 0x7FFF;
+//    TRISD = 0x0000;
+//    TRISE = 0x0000;
+//}
 
 int main(void) {
     TRISB = 0x7FFF;
@@ -190,52 +213,53 @@ int main(void) {
 
     LCD_init();
 
-    unsigned int player1_time = 30; // Czas gracza 1 w sekundach
-    unsigned int player2_time = 30; // Czas gracza 2 w sekundach
+    unsigned int player1_time = 10; // Czas gracza 1 w sekundach
+    unsigned int player2_time = 10; // Czas gracza 2 w sekundach
 
     char tekst[100];
 
 
     while(current_player == 0){
-        __delay_ms(10);
         LCD_setCursor(1, 0);
         __delay_ms(10);
         sprintf(tekst, "Gracz 1: %02d:%02d", player1_time / 60, player1_time % 60);
         LCD_print(tekst);
-        __delay_ms(10);
 
         LCD_setCursor(2, 0);
         __delay_ms(10);
         sprintf(tekst, "Gracz 2: %02d:%02d", player2_time / 60, player2_time % 60);
         LCD_print(tekst);
-        __delay_ms(10);
 
         check_game_status(&game_status, &current_player);
-        if(game_status == 1){
-            LCD_sendCommand(LCD_CLEAR);
-            LCD_setCursor(1, 0);
-            LCD_print("zle dziala");
-             __delay_ms(1000);
-             __delay_ms(1000);
-             __delay_ms(1000);
-             __delay_ms(1000);
-             __delay_ms(1000);
-        }
+//        check_time_status(&time_status);
+//        
+//        if (time_status == 0){
+//            LCD_sendCommand(LCD_CLEAR);
+//            __delay_ms(10);
+//            LCD_print("time1");
+//            
+//        }
+//
+//        if (time_status == 1){
+//            LCD_sendCommand(LCD_CLEAR);
+//            __delay_ms(10);
+//            LCD_print("time1");
+//            break;
+//            player1_time = set_time(player1_time);
+//            __delay_ms(10);
+//        }
+//        if (time_status == 2){
+//            LCD_sendCommand(LCD_CLEAR);
+//            __delay_ms(10);
+//            player2_time = set_time(player2_time);
+//            __delay_ms(10);
+//        }
         __delay_ms(10);
-        check_time_status(&time_status);
-        __delay_ms(10);
-        if (time_status == 1){
-            player1_time = set_time(player1_time);
-            __delay_ms(10);
-        }
-        if (time_status == 2){
-            player2_time = set_time(player2_time);
-            __delay_ms(10);
-        }
-        __delay_ms(10);
-        while(player1_time > 0 && player2_time > 0 && game_status == 1 && current_player != 0) {
-            while (player1_time > 0 && current_player == 1) {
-                __delay_ms(970);
+        while(player1_time > 0 && player2_time > 0 && current_player != 0) {
+            check_game_status(&game_status, &current_player);
+            while (player1_time > 0 && current_player == 1 && game_status == 1) {
+//                __delay_ms(970);
+                wait(5, &game_status, &current_player);
                 player1_time--;
                 
                 LCD_setCursor(1, 0);
@@ -247,10 +271,9 @@ int main(void) {
                 check_game_status(&game_status, &current_player);
                 __delay_ms(10);
             }
-
-
-            while (player2_time > 0 && current_player == 2) {
-                __delay_ms(970);
+            while (player2_time > 0 && current_player == 2 && game_status == 1) {
+//                __delay_ms(970);
+                wait(5, &game_status, &current_player);
                 player2_time--;
                 
                 LCD_setCursor(2, 0);
@@ -262,7 +285,6 @@ int main(void) {
                 check_game_status(&game_status, &current_player);
                 __delay_ms(10);
             }
-
             if (player2_time == 0 || player1_time == 0) {
                 LCD_sendCommand(LCD_CLEAR);
                 __delay_ms(10);
