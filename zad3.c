@@ -19,7 +19,7 @@
 
 // Defninicja makr tak by kod byl czytelny, przejrzysty, deskryptywny i przyjazny
 // uzytkownikowi
-#define FCY         8000000UL   // czestotliwosc robocza oscylatora jako polowa
+#define FCY         4000000UL   // czestotliwosc robocza oscylatora jako polowa
 //czestotliwosci (FNOSC = FRC -> FCY = 4000000)
 // Zdefiniowanie poszczegolnych pinow jako odpowiednie makra
 #define LCD_E       LATDbits.LATD4
@@ -209,36 +209,36 @@ unsigned char coin8[8] = {
         0b10000
 };
 char button1 = 0, button2 = 0; //variables for buttons
-int ilosc_trybow = 3;
-int check_button(int tryb){
+int number_of_modes = 3;
+int check_button(int mode){
     TRISA = 0x0000;
     TRISD = 0xFFFF;
-    
-    __delay_ms(100);
-    
+
+    __delay_ms(10);
+
     button1 = PORTDbits.RD6;
-    __delay_ms(100);
+    __delay_ms(10);
     button2 = PORTDbits.RD7;
-    __delay_ms(100);
+    __delay_ms(10);
 
     if (button1 == 0){
-        tryb--;
-        if(tryb < 0){
-            tryb=ilosc_trybow;
+        mode--;
+        if(mode < 0){
+            mode=number_of_modes;
         }
     }
-    __delay_ms(100);
+    __delay_ms(10);
     if (button2 == 0){
-        tryb++;
-        if(tryb > ilosc_trybow){
-            tryb=0;
+        mode++;
+        if(mode > number_of_modes){
+            mode=0;
         }
     }
-    __delay_ms(100);
+    __delay_ms(10);
     TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
-    return tryb;
+    return mode;
 }
 
 int main(void) {
@@ -246,156 +246,137 @@ int main(void) {
     TRISD = 0x0000;
     TRISE = 0x0000;
 
-    int tryb = 0;
+    int mode = 0;
 
     char ad_text[] = "pomidor 2zl";
     int length = strlen(ad_text);
-//    int length = 10;
 
-    LCD_init();                     // Inicjalizacja wyswietlacza
-    __delay_ms(100);
+    LCD_init();
+    __delay_ms(10);
     LCD_saveCustChar(0, coin1);
-    __delay_ms(100);
+    __delay_ms(10);
     LCD_saveCustChar(1, coin2);
-    __delay_ms(100);
+    __delay_ms(10);
     LCD_saveCustChar(2, coin3);
-    __delay_ms(100);
+    __delay_ms(10);
     LCD_saveCustChar(3, coin4);
-    __delay_ms(100);
+    __delay_ms(10);
     LCD_saveCustChar(4, coin5);
-    __delay_ms(100);
+    __delay_ms(10);
     LCD_saveCustChar(5, coin6);
-    __delay_ms(100);
+    __delay_ms(10);
     LCD_saveCustChar(6, coin7);
-    __delay_ms(100);
+    __delay_ms(10);
     LCD_saveCustChar(7, coin8);
-    __delay_ms(100);
-    LCD_setCursor(1,0);             // Ustawienie kursora na poczatku drugiej linii
-    __delay_ms(100);
-    LCD_print(ad_text);      // Wyswietlenie napisu
-    __delay_ms(100);
+    __delay_ms(10);
+    LCD_setCursor(1,0);
+    __delay_ms(10);
+    LCD_print(ad_text);
+    __delay_ms(10);
 
     while (1){
-//        miganie
-        while(tryb == 0) {
+        // flashing
+        while(mode == 0) {
             LCD_sendCommand(LCD_CLEAR);
             __delay_ms(1000);
             LCD_setCursor(1,0);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_print(ad_text);
             __delay_ms(1000);
-            tryb = check_button(tryb);
-            __delay_ms(100);
+            mode = check_button(mode);
+            __delay_ms(10);
         }
-//        przewijanie w pionie
-        while(tryb == 1) {
+        // vertical scrolling
+        while(mode == 1) {
             LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_setCursor(1,0);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_print(ad_text);
             __delay_ms(500);
             LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_setCursor(2,0);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_print(ad_text);
-            __delay_ms(100);
-            tryb = check_button(tryb);
+            __delay_ms(10);
+            mode = check_button(mode);
+            __delay_ms(10);
         }
-////        przewijanie w prawo
-//        while(tryb == 2) {
-//            int  column_first_latter = -length;
-//            __delay_ms(100);
-//            LCD_sendCommand(LCD_CLEAR);
-//            __delay_ms(100);
-//            LCD_setCursor(1,column_first_latter);
-//            __delay_ms(100);
-//            LCD_print(ad_text);
-//            __delay_ms(100);
-//            while (tryb == 2 && column_first_latter < length + 12){
-//                LCD_sendCommand(LCD_SHIFT_R);
-//                __delay_ms(100);
-//                column_first_latter++;
-//                __delay_ms(100);
-//                tryb = check_button(tryb);
-//                __delay_ms(100);
-//            }
-//        }
-////        przewijanie w lewo
-//        while(tryb == 3) {
-//            int  column_first_latter = length + 12;
-//            __delay_ms(100);
-//            LCD_sendCommand(LCD_CLEAR);
-//            __delay_ms(100);
-//            LCD_setCursor(1,column_first_latter);
-//            __delay_ms(100);
-//            LCD_print(ad_text);
-//            __delay_ms(100);
-//            while (tryb == 3 && column_first_latter > -length){
-//                LCD_sendCommand(LCD_SHIFT_L);
-//                __delay_ms(100);
-//                column_first_latter--;
-//                tryb = check_button(tryb);
-//                __delay_ms(100);
-//            }
-//        }
-//        ze znakiem specjalnym
-        while(tryb == 2) {
+
+        // text with spinning coin symbols
+        while(mode == 2) {
             int symbol_number = 0;
             LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_setCursor(1,1);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_print(ad_text);
-            __delay_ms(100);
+            __delay_ms(10);
+            // show coin symbols
             while (symbol_number<=6){
+                // show left side of coin symbol
                 LCD_setCursor(1,length+1);
-                __delay_ms(100);
+                __delay_ms(10);
                 LCD_sendData(symbol_number);
-                __delay_ms(100);
+                __delay_ms(10);
+
+                // show right side of coin symbol
                 LCD_setCursor(1,length+2);
-                __delay_ms(100);
+                __delay_ms(10);
                 LCD_sendData(symbol_number+1);
-                __delay_ms(100);
+                __delay_ms(10);
+
                 symbol_number+=2;
-                tryb = check_button(tryb);
-                __delay_ms(100);
+
+                mode = check_button(mode);
+                __delay_ms(10);
             }
             symbol_number = 7;
+            // show coin symbols in reverse order
             while (symbol_number>=0){
-                LCD_setCursor(1,length+2);
-                __delay_ms(100);
-                LCD_sendData(symbol_number);
-                __delay_ms(100);
+                // show left side of coin symbol
                 LCD_setCursor(1,length+1);
-                __delay_ms(100);
+                __delay_ms(10);
                 LCD_sendData(symbol_number-1);
-                __delay_ms(100);
+                __delay_ms(10);
+
+                // show right side of coin symbol
+                LCD_setCursor(1,length+2);
+                __delay_ms(10);
+                LCD_sendData(symbol_number);
+                __delay_ms(10);
+
                 symbol_number-=2;
-                tryb = check_button(tryb);
-                __delay_ms(100);
+
+                mode = check_button(mode);
+                __delay_ms(10);
             }
         }
-//        odbijanie od kraw?dzi
-        while(tryb == 3) {
+        // bounce from edge to edge
+        while(mode == 3) {
             LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_setCursor(1,0);
-            __delay_ms(100);
+            __delay_ms(10);
             LCD_print(ad_text);
-            __delay_ms(100);
+            __delay_ms(10);
+
             int  column_first_latter = 0;
-            while (column_first_latter < 16 - length && tryb == 3){
+            // go to right edge
+            while (column_first_latter < 16 - length && mode == 3){
                 LCD_sendCommand(LCD_SHIFT_R);
-                __delay_ms(100);
-                tryb = check_button(tryb);
+                __delay_ms(10);
+
+                mode = check_button(mode);
                 column_first_latter++;
             }
-            while (column_first_latter > 0 && tryb == 3){
+            // go to left edge
+            while (column_first_latter > 0 && mode == 3){
                 LCD_sendCommand(LCD_SHIFT_L);
-                __delay_ms(100);
-                tryb = check_button(tryb);
+                __delay_ms(10);
+
+                mode = check_button(mode);
                 column_first_latter--;
             }
         }
