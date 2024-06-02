@@ -86,8 +86,9 @@ void LCD_init(){
     LCD_sendCommand(LCD_CLEAR);
     __delay_ms(2);
 }
+
 char button1 = 0, button2 = 0, potentiometer = 0;
-void check_button(int *opcja, int *start){
+void check_button(int *mode, int *state){
     TRISA = 0x0000;
     TRISD = 0xFFFF;
     __delay_ms(10);
@@ -98,18 +99,18 @@ void check_button(int *opcja, int *start){
     __delay32(150000);
 
     if (button1 == 0){
-        if (*opcja == 0) {
-            *opcja = 1;
+        if (*mode == 0) {
+            *mode = 1;
         } else {
-            *opcja = 0;
+            *mode = 0;
         }
     }
     __delay_ms(10);
     if (button2 == 0){
-        if (*start == 0) {
-            *start = 1;
+        if (*state == 0) {
+            *state = 1;
         } else {
-            *start = 0;
+            *state = 0;
         }
     }
     __delay_ms(10);
@@ -118,7 +119,7 @@ void check_button(int *opcja, int *start){
     TRISE = 0x0000;
 }
 
-int check_potentiometer(int opcja){
+int check_potentiometer(int mode){
     TRISA = 0x0000;      //TRISA = 0b0000000000000000;
     TRISB = 0xFFFF;      //TRISB = 0b1111111111111111;
     AD1CON1 = 0x80E4;   //AD1CON1 = 0b1000000011100100;
@@ -126,22 +127,22 @@ int check_potentiometer(int opcja){
     AD1CON3 = 0x0F00;   //AD1CON3 = 0b0000111100000000;
     AD1CHS = 0;
     AD1CSSL = 0x0020;   //AD1CSSL = 0b0000000000100000;
-    int val = 0;
+
     __delay_ms(10);
-    if(opcja == 0){
+    if(mode == 0){
 //        float pom = ADC1BUF0/ 1024 * 300;
-//        val = (int)pom;
-        val = ADC1BUF0;
+//        potentiometer = (int)pom;
+        potentiometer = ADC1BUF0;
     }
     __delay_ms(10);
-    if(opcja == 1){
-        val = ADC1BUF0/2;
+    if(mode == 1){
+        potentiometer = ADC1BUF0/2;
     }
     TRISB = 0x7FFF;
     TRISD = 0x0000;
     TRISE = 0x0000;
-    
-    return val;
+
+    return potentiometer;
 }
 
 int main(void) {
@@ -149,66 +150,76 @@ int main(void) {
     TRISD = 0x0000;
     TRISE = 0x0000;
 
-    int opcja = 0; // 0: moc, 1: czas
-    int start = 0; // 0: stop, 1: start
+    int mode = 0; // 0: power, 1: time
+    int state = 0; // 0: stop, 1: start
 
     LCD_init();
 
-    int waty = 100;
-    int czas = 60; // w sekundach
-    char tekst[100];
+    int power = 100;
+    int time = 60; // time in seconds
+    char text[16];
 
 
 
     while (1) {
-        check_button(&opcja, &start);
-
-        if (opcja == 0) {
+        check_button(&mode, &state);
+        // set power
+        if (mode == 0) {
+            power = check_potentiometer(mode);
             __delay_ms(10);
-            waty = check_potentiometer(opcja);
-            __delay_ms(10);
 
-            sprintf(tekst, "moc: %dw", waty);
+            sprintf(text, "moc: %dw", power);
+
+            LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(10);
             LCD_setCursor(2, 0);
             __delay_ms(10);
-            LCD_sendCommand(LCD_CLEAR);
-            __delay_ms(10);
-            LCD_print(tekst);
+            LCD_print(text);
             __delay_ms(10);
         }
-        if (opcja == 1) {
-            czas = check_potentiometer(opcja);
+        // set time
+        if (mode == 1) {
+            time = check_potentiometer(mode);
             __delay_ms(10);
 
-            sprintf(tekst, "czas: %02d:%02ds", czas / 60, czas % 60);
+            sprintf(text, "czas: %02d:%02ds", time / 60, time % 60);
+
+            LCD_sendCommand(LCD_CLEAR);
+            __delay_ms(10);
             LCD_setCursor(1, 0);
             __delay_ms(10);
-            LCD_print(tekst);
+            LCD_print(text);
             __delay_ms(10);
         }
-        if (start == 1) {
+        // start the microwave timer
+        if (state == 1) {
             LCD_sendCommand(LCD_CLEAR);
             __delay_ms(10);
-            while (start == 1 && czas > 0) {
+            while (state == 1 && time > 0) {
+                sprintf(text, "pozostolo: %02d:%02ds", time / 60, time % 60);
+
                 LCD_setCursor(1, 0);
                 __delay_ms(10);
-                sprintf(tekst, "pozostolo: %02d:%02ds", czas / 60, czas % 60);
-                LCD_print(tekst);
+                LCD_print(text);
                 __delay_ms(980);
-                czas--;
+
+                time--;
+
                 __delay_ms(10);
-                check_button(&opcja, &start);
+                check_button(&mode, &state);
             }
+            // show "koniec" after user stop timer or time is over
             LCD_sendCommand(LCD_CLEAR);
             __delay_ms(10);
             LCD_setCursor(1, 0);
             __delay_ms(10);
+
             LCD_print("koniec");
             __delay_ms(1000);
             __delay_ms(1000);
             __delay_ms(1000);
             __delay_ms(1000);
-            
+
             break;
         }
     }
